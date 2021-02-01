@@ -8,4 +8,8 @@ class TestsController < Simpler::Controller
 
   end
 
+  def show
+    render plain: "Show #{params[:id]}"
+  end
+
 end

@@ -43,6 +43,8 @@ module Simpler
     end
 
     def params
+      path = @request.env['PATH_INFO']
+      @request.params[:id] = path.match(/\/\w+\/(?<id>\d+)/)[:id]
       @request.params
     end
 
