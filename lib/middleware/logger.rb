@@ -7,28 +7,28 @@ class Logger
   def call(env)
     status, headers, body = @app.call(env)
 
-    request = Rack::Request.new(env)
-    method = env['REQUEST_METHOD']
-    url = env['REQUEST_URI']
-    name = env['simpler.controller'].class.name
-    action = env['simpler.action']
-    template = env['simpler.template_file']
-    status_text = Puma::HTTP_STATUS_CODES[status]
-
-    Dir.mkdir('log') unless Dir.exists?('log')
-    file = if File.exists?('log/app.log')
+    Dir.mkdir('log') unless Dir.exist?('log')
+    file = if File.exist?('log/app.log')
              File.open('log/app.log', 'a')
            else
              File.new('log/app.log', 'w')
            end
-    file.write "Request: #{method} #{url}\n"
-    file.write "Handler: #{name}\##{action}\n"
-    file.write "Parameters: #{request.params}\n"
-    file.write "Response: #{status} #{status_text} [#{headers['Content-Type']}] #{template}\n"
-    file.write "\n"
+
+    file.write(generate_log_info(env, status, headers))
     file.close
 
     [status, headers, body]
+  end
+
+  private
+
+  def generate_log_info(env, status, headers)
+    "Request: #{env['REQUEST_METHOD']} #{env['REQUEST_URI']}\n" \
+    "Handler: #{env['simpler.controller'].class.name}\##{env['simpler.action']}\n" \
+    "Parameters: #{Rack::Request.new(env).params}\n" \
+    "Response: #{status} #{Puma::HTTP_STATUS_CODES[status]} " \
+    "[#{headers['Content-Type']}] #{env['simpler.template_file']}\n" \
+    "\n"
   end
 
 end
