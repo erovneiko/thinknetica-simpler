@@ -33,7 +33,7 @@ module Simpler
     end
 
     def write_response
-      body = render_body
+      body = @plain || render_body
 
       @response.write(body)
     end
@@ -43,11 +43,27 @@ module Simpler
     end
 
     def params
+      path = @request.env['PATH_INFO']
+      @request.params[:id] = path.match(/\/\w+\/(?<id>\d+)/)[:id]
       @request.params
     end
 
     def render(template)
+      if template[:plain]
+        @response['Content-Type'] = 'text/plain'
+        @plain = template[:plain]
+        return
+      end
+
       @request.env['simpler.template'] = template
+    end
+
+    def status(status)
+      @response.status = status
+    end
+
+    def headers
+      @response.headers
     end
 
   end
